@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">ClubOlympus</string>
+    <string name="app_name">Sport Club \"Trask\"</string>
+    <string name="add_member">Add New Member</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="gender">Gender</string>
+    <string name="group">Group</string>
+    <string name="save_member">Save Member</string>
+    <string name="delete_member">Delete Member</string>
 </resources>
