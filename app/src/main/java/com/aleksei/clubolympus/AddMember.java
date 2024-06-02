@@ -47,19 +47,18 @@ public class AddMember extends AppCompatActivity implements AdapterView.OnItemSe
         lastNameInput = findViewById(R.id.last_name_field);
         sportInput = findViewById(R.id.sport_field);
         genderSpinner = findViewById(R.id.gender_spinner);
+        genderSpinner.setOnItemSelectedListener(this);
 
         spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.array_gender, android.R.layout.simple_spinner_item);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderSpinner.setAdapter(spinnerAdapter);
-
-        insertMember();
 
     }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         String selectedGender = parent.getItemAtPosition(position).toString();
-        if (TextUtils.isEmpty(selectedGender)) {
+        if (!TextUtils.isEmpty(selectedGender)) {
             gender = switch (selectedGender) {
                 case "Male" -> MemberEntry.GENDER_MALE;
                 case "Female" -> MemberEntry.GENDER_FEMALE;
@@ -83,6 +82,7 @@ public class AddMember extends AppCompatActivity implements AdapterView.OnItemSe
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.save_member) {
+            insertMember();
             return true;
         } else if (itemId == R.id.delete_member) {
             return true;
@@ -110,7 +110,7 @@ public class AddMember extends AppCompatActivity implements AdapterView.OnItemSe
             uri = contentResolver.insert(MemberEntry.CONTENT_URI, values);
             Toast.makeText(this, "Member saved", Toast.LENGTH_SHORT).show();
         } catch (IllegalArgumentException e) {
-            Toast.makeText(this, "Error with saving member", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error with saving member: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
     }
