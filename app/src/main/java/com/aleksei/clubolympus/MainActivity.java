@@ -1,7 +1,9 @@
 package com.aleksei.clubolympus;
 
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ListView;
 
@@ -40,12 +42,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, AddMember.class);
+            Intent intent = new Intent(MainActivity.this, AddMemberActivity.class);
             startActivity(intent);
         });
 
         memberCursorAdapter = new MemberCursorAdapter(this, null, false);
         dataListView.setAdapter(memberCursorAdapter);
+        dataListView.setOnItemClickListener((parent, view, position, id) -> {
+            Intent intent = new Intent(MainActivity.this, AddMemberActivity.class);
+            Uri currentMemberUri = ContentUris.withAppendedId(MemberEntry.CONTENT_URI, id);
+            intent.setData(currentMemberUri);
+            startActivity(intent);
+        });
 
         getSupportLoaderManager().initLoader(MEMBER_LOADER, null, this);
     }
@@ -80,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
 
-        memberCursorAdapter.swapCursor(null);
+        memberCursorAdapter.swapCursor(null).close();
 
     }
 /*

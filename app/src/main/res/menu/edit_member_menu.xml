@@ -10,5 +10,5 @@
         android:id="@+id/delete_member"
         android:title="@string/delete_member"
         android:icon="@drawable/baseline_delete_forever_white_24"
-        app:showAsAction="never"/>
+        app:showAsAction="ifRoom"/>
 </menu>

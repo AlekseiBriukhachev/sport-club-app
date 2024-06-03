@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="10dp"
-    tools:context=".AddMember">
+    tools:context=".AddMemberActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -1,6 +1,7 @@
 package com.aleksei.clubolympus.db;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -43,7 +44,7 @@ public class OlympusContentProvider extends ContentProvider {
                     db.query(MemberEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
             case MEMBER_ID -> {
                 selection = MemberEntry._ID + "=?";
-                selectionArgs = new String[]{String.valueOf(uri)};
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 yield db.query(MemberEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
             }
             default -> throw new IllegalArgumentException("Cannot query unknown URI " + uri);
@@ -67,25 +68,7 @@ public class OlympusContentProvider extends ContentProvider {
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
 
-        String firstName = Objects.requireNonNull(values).getAsString(MemberEntry.COLUMN_FIRST_NAME);
-        if (firstName == null || firstName.isEmpty()) {
-            throw new IllegalArgumentException("Member requires a first name");
-        }
-
-        String lastName = values.getAsString(MemberEntry.COLUMN_LAST_NAME);
-        if (lastName == null || lastName.isEmpty()) {
-            throw new IllegalArgumentException("Member requires a last name");
-        }
-
-        Integer gender = values.getAsInteger(MemberEntry.COLUMN_GENDER);
-        if (gender == null || isValidGender(gender)) {
-            throw new IllegalArgumentException("Member requires valid gender");
-        }
-
-        String sport = values.getAsString(MemberEntry.COLUMN_SPORT);
-        if (sport == null || sport.isEmpty()) {
-            throw new IllegalArgumentException("Member requires a sport");
-        }
+        validateFields(values);
 
         SQLiteDatabase db = databaseHandler.getWritableDatabase();
         int match = uriMatcher.match(uri);
@@ -104,86 +87,69 @@ public class OlympusContentProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 
-        assert values != null;
-        if (values.containsKey(MemberEntry.COLUMN_FIRST_NAME)) {
-            String firstName = values.getAsString(MemberEntry.COLUMN_FIRST_NAME);
-            if (firstName == null) {
-                throw new IllegalArgumentException("Member requires a first name");
-            }
-        }
-
-        if (values.containsKey(MemberEntry.COLUMN_LAST_NAME)) {
-            String lastName = values.getAsString(MemberEntry.COLUMN_LAST_NAME);
-            if (lastName == null) {
-                throw new IllegalArgumentException("Member requires a last name");
-            }
-        }
-
-        if (values.containsKey(MemberEntry.COLUMN_GENDER)) {
-            Integer gender = values.getAsInteger(MemberEntry.COLUMN_GENDER);
-            if (gender == null || isValidGender(gender)) {
-                throw new IllegalArgumentException("Member requires valid gender");
-            }
-        }
-
-        if (values.containsKey(MemberEntry.COLUMN_SPORT)) {
-            String sport = values.getAsString(MemberEntry.COLUMN_SPORT);
-            if (sport == null) {
-                throw new IllegalArgumentException("Member requires a sport");
-            }
-        }
+       validateFields(values);
 
         SQLiteDatabase db = databaseHandler.getWritableDatabase();
         int match = uriMatcher.match(uri);
-        int rowsUpdated;
-        return switch (match) {
-            case MEMBERS -> {
-                rowsUpdated = db.update(MemberEntry.TABLE_NAME, values, selection, selectionArgs);
-                if (rowsUpdated != 0) {
-                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
-                }
-                yield rowsUpdated;
-            }
+        int rowsUpdated = switch (match) {
+            case MEMBERS -> db.update(MemberEntry.TABLE_NAME, values, selection, selectionArgs);
             case MEMBER_ID -> {
                 selection = MemberEntry._ID + "=?";
-                selectionArgs = new String[]{String.valueOf(uri)};
-                rowsUpdated = db.update(MemberEntry.TABLE_NAME, values, selection, selectionArgs);
-                if (rowsUpdated != 0) {
-                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
-                }
-                yield rowsUpdated;
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                yield db.update(MemberEntry.TABLE_NAME, values, selection, selectionArgs);
             }
             default -> throw new IllegalArgumentException("Cannot update unknown URI " + uri);
         };
+
+        if (rowsUpdated != 0) {
+            Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
+        }
+        return rowsUpdated;
     }
 
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         SQLiteDatabase db = databaseHandler.getWritableDatabase();
         int match = uriMatcher.match(uri);
-        int rowsDeleted;
-        return switch (match) {
-            case MEMBERS -> {
-                rowsDeleted = db.delete(MemberEntry.TABLE_NAME, selection, selectionArgs);
-                if (rowsDeleted != 0) {
-                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
-                }
-                yield rowsDeleted;
-            }
+        int rowsDeleted = switch (match) {
+            case MEMBERS ->
+                db.delete(MemberEntry.TABLE_NAME, selection, selectionArgs);
             case MEMBER_ID -> {
                 selection = MemberEntry._ID + "=?";
-                selectionArgs = new String[]{String.valueOf(uri)};
-                rowsDeleted = db.delete(MemberEntry.TABLE_NAME, selection, selectionArgs);
-                if (rowsDeleted != 0) {
-                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
-                }
-                yield rowsDeleted;
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                yield db.delete(MemberEntry.TABLE_NAME, selection, selectionArgs);
             }
             default -> throw new IllegalArgumentException("Cannot delete unknown URI " + uri);
         };
+        if (rowsDeleted != 0) {
+            Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
+        }
+        return rowsDeleted;
     }
 
     private boolean isValidGender(Integer gender) {
-        return gender != MemberEntry.GENDER_UNKNOWN && gender != MemberEntry.GENDER_MALE && gender != MemberEntry.GENDER_FEMALE;
+        return gender == MemberEntry.GENDER_MALE || gender == MemberEntry.GENDER_FEMALE;
+    }
+
+    private void validateFields(ContentValues values) {
+        String firstName = Objects.requireNonNull(values).getAsString(MemberEntry.COLUMN_FIRST_NAME);
+        if (firstName.isEmpty()) {
+            throw new IllegalArgumentException("Member requires a first name");
+        }
+
+        String lastName = values.getAsString(MemberEntry.COLUMN_LAST_NAME);
+        if (lastName.isEmpty()) {
+            throw new IllegalArgumentException("Member requires a last name");
+        }
+
+        Integer gender = values.getAsInteger(MemberEntry.COLUMN_GENDER);
+        if (isValidGender(gender)) {
+            throw new IllegalArgumentException("Choose the gender");
+        }
+
+        String sport = values.getAsString(MemberEntry.COLUMN_SPORT);
+        if (sport.isEmpty()) {
+            throw new IllegalArgumentException("Member requires a sport");
+        }
     }
 }

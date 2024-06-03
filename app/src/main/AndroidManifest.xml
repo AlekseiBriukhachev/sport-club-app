@@ -13,7 +13,7 @@
         android:theme="@style/Theme.ClubOlympus"
         tools:targetApi="31">
         <activity
-            android:name=".AddMember"
+            android:name=".AddMemberActivity"
             android:exported="false"
             android:label="@string/add_member"/>
         <activity
