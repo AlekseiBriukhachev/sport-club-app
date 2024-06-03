@@ -68,7 +68,7 @@ public class AddMemberActivity extends AppCompatActivity implements AdapterView.
         genderSpinner.setOnItemSelectedListener(this);
 
         spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.array_gender, android.R.layout.simple_spinner_item);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         genderSpinner.setAdapter(spinnerAdapter);
 
     }

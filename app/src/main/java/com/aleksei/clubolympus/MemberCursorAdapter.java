@@ -24,11 +24,8 @@ public class MemberCursorAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
 
         TextView idTextView = view.findViewById(R.id.idMemberTextView);
-        idTextView.setGravity(View.TEXT_ALIGNMENT_VIEW_START);
         TextView firstNameTextView = view.findViewById(R.id.firstNameMemberTextView);
-        firstNameTextView.setGravity(View.TEXT_ALIGNMENT_VIEW_START);
         TextView lastNameTextView = view.findViewById(R.id.lastNameMemberTextView);
-        lastNameTextView.setGravity(View.TEXT_ALIGNMENT_VIEW_START);
         TextView genderTextView = view.findViewById(R.id.genderMemberTextView);
         TextView sportTextView = view.findViewById(R.id.sportMemberTextView);
 
